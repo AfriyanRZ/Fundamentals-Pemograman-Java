@@ -4,16 +4,19 @@ public class SistemPemesananTiketBioskop {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        HashSet<String> kursiDipesan = new HashSet<>();
+        HashMap<String, HashSet<String>> jadwalFilm = new HashMap<>();
 
-        // Inisialisasi daftar kursi (misal: A1 hingga A10)
+        // Inialisasi daftar kursi untuk setiap film
         String[] semuaKursi = {"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"};
-
+        jadwalFilm.put("Avatar 2", new HashSet<>());
+        jadwalFilm.put("Spider-Man", new HashSet<>());
+        jadwalFilm.put("The Batman", new HashSet<>());
+        
         System.out.println("=== Sistem Pemesanan Tiket Bioskop ===");
 
         while (true) {
             System.out.println("\nMenu:");
-            System.out.println("1. Pesan Kursi");
+            System.out.println("1. Pilih Film dan Pesan Kursi");
             System.out.println("2. Batalkan Pemesanan");
             System.out.println("3. Tampilkan Kursi yang Tersedia");
             System.out.println("4. Keluar");
@@ -24,35 +27,70 @@ public class SistemPemesananTiketBioskop {
 
                 switch (pilihan) {
                     case 1:
-                        System.out.print("Masukkan nomor kursi yang ingin dipesan (contoh: A1): ");
+                        System.out.println("\nPilih Film:");
+                        for (String film : jadwalFilm.keySet()) {
+                            System.out.println("- " + film);
+                        }
+                        System.out.print("Masukan nama film: ");
+                        String filmPilihan = scanner.nextLine();
+
+                        if (!jadwalFilm.containsKey(filmPilihan)) {
+                            System.out.println("Film tidak tersedia. Silahkan pilih film yang ada.");
+                            break;
+                        }
+                        System.out.print("Masukan nomor kursi yang ingin dipesan (contoh: A1): ");
                         String kursiPesan = scanner.nextLine().toUpperCase();
 
-                        if (kursiDipesan.contains(kursiPesan)) {
-                            System.out.println("Kursi " + kursiPesan + " sudah dipesan. Silakan pilih kursi lain.");
+                        if (jadwalFilm.get(filmPilihan).contains(kursiPesan)) {
+                            System.out.println("Kursi " + kursiPesan + " untuk film " + filmPilihan + " sudah dipesan. Silahkan pilih kursi yang lain.");
                         } else if (!isKursiValid(semuaKursi, kursiPesan)) {
-                            System.out.println("Nomor kursi tidak valid. Silakan masukkan kursi yang tersedia.");
+                            System.out.println("Nomor kursi tidak valid. Silahkan masukan kursi yang tersedia.");
                         } else {
-                            kursiDipesan.add(kursiPesan);
-                            System.out.println("Kursi " + kursiPesan + " berhasil dipesan.");
+                            jadwalFilm.get(filmPilihan).add(kursiPesan);
+                            System.out.println("Kursi " + kursiPesan + " untuk film " + filmPilihan + " berhasil dipesan.");
                         }
                         break;
 
                     case 2:
-                        System.out.print("Masukkan nomor kursi yang ingin dibatalkan (contoh: A1): ");
+                        System.out.println("\nPilih Film:");
+                        for (String film : jadwalFilm.keySet()) {
+                            System.out.println("- " + film);
+                        }
+                        System.out.print("Masukan nama film: ");
+                        String filmBatal = scanner.nextLine();
+
+                        if (!jadwalFilm.containsKey(filmBatal)) {
+                            System.out.println("Film tidak tersedia. Silahkan pilih film yang ada.");
+                            break;
+                        }
+
+                        System.out.print("Masukan nomor kursi yang ingin dibatalkan (contoh: A1): ");
                         String kursiBatal = scanner.nextLine().toUpperCase();
 
-                        if (kursiDipesan.contains(kursiBatal)) {
-                            kursiDipesan.remove(kursiBatal);
-                            System.out.println("Kursi " + kursiBatal + " berhasil dibatalkan.");
+                        if (jadwalFilm.get(filmBatal).contains(kursiBatal)) {
+                            jadwalFilm.get(filmBatal).remove(kursiBatal);
+                            System.out.println("Kursi " + kursiBatal + " untuk film " + filmBatal + " berhasil dibatalkan.");
                         } else {
                             System.out.println("Kursi " + kursiBatal + " belum dipesan atau tidak valid.");
                         }
                         break;
 
                     case 3:
-                        System.out.println("\nKursi yang tersedia:");
+                        System.out.println("\nPilih Film untuk melihat kursi yang tersedia:");
+                        for (String film : jadwalFilm.keySet()) {
+                            System.out.println("- " + film);
+                        }
+                        System.out.print("Masukan nama film: ");
+                        String filmTersedia = scanner.nextLine();
+
+                        if (!jadwalFilm.containsKey(filmTersedia)) {
+                            System.out.println("Film tidak tersedia. Silahkan pilih film yang ada.");
+                            break;
+                        }
+
+                        System.out.println("\nKursi yang tersedia untuk film " + filmTersedia + ":");
                         for (String kursi : semuaKursi) {
-                            if (!kursiDipesan.contains(kursi)) {
+                            if (!jadwalFilm.get(filmTersedia).contains(kursi)) {
                                 System.out.print(kursi + " ");
                             }
                         }
