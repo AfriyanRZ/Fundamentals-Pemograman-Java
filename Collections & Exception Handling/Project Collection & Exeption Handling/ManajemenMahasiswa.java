@@ -1,3 +1,4 @@
+import java.io.*;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -30,7 +31,7 @@ class Mahasiswa {
     // Override toString untuk cetak data mahasiswa
     @Override
     public String toString() {
-        return "Nim: " + nim + ", Nama: " + nama + ", Jurusan: " + jurusan;
+        return nim + "," + nama + "," + jurusan;
     }
 
     // Override equals dan hashCode untuk memastikan NIM unik
@@ -50,19 +51,23 @@ class Mahasiswa {
 
 // Main Program
 public class ManajemenMahasiswa {
+    private static final String FILE_NAME = "data_mahasiswa.txt";
     private static HashSet<Mahasiswa> mahasiswaSet = new HashSet<>();
     private static Scanner scanner = new Scanner(System.in);
+    private static final String[] VALID_JURUSAN = {"Informatika", "Sistem Informasi", "Teknik Komputer"};
 
     public static void main(String[] args) {
+        loadDataFromFile();
+
         int pilihan;
-        do { 
+        do {
             System.out.println("\n=== Sistem Manajemen Data Mahasiswa ===");
             System.out.println("1. Tambah Mahasiswa");
             System.out.println("2. Hapus Mahasiswa");
             System.out.println("3. Cari Mahasiswa");
             System.out.println("4. Tampilkan Semua Mahasiswa");
             System.out.println("5. Keluar");
-            System.out.println("Pilih Menu: ");
+            System.out.print("Pilih menu: ");
             pilihan = scanner.nextInt();
             scanner.nextLine(); // Membersihkan buffer
 
@@ -80,6 +85,7 @@ public class ManajemenMahasiswa {
                     tampilkanMahasiswa();
                     break;
                 case 5:
+                    saveDataToFile();
                     System.out.println("Keluar dari program...");
                     break;
                 default:
@@ -88,15 +94,33 @@ public class ManajemenMahasiswa {
         } while (pilihan != 5);
     }
 
-    // Menambahkan data mahasiswa
+    // Menambah data mahasiswa
     private static void tambahMahasiswa() {
         try {
-            System.out.print("Masukan NIM: ");
+            System.out.print("Masukkan NIM (harus 8 digit angka): ");
             String nim = scanner.nextLine();
-            System.out.print("Masukan Nama: ");
+            if (!nim.matches("\\d{8}")) {
+                throw new IllegalArgumentException("NIM harus terdiri dari 8 digit angka!");
+            }
+
+            System.out.print("Masukkan Nama (hanya huruf): ");
             String nama = scanner.nextLine();
-            System.out.print("Masukan Jurusan: ");
+            if (!nama.matches("[a-zA-Z ]+")) {
+                throw new IllegalArgumentException("Nama hanya boleh berisi huruf dan spasi!");
+            }
+
+            System.out.print("Masukkan Jurusan (Informatika, Sistem Informasi, Teknik Komputer): ");
             String jurusan = scanner.nextLine();
+            boolean jurusanValid = false;
+            for (String j : VALID_JURUSAN) {
+                if (jurusan.equalsIgnoreCase(j)) {
+                    jurusanValid = true;
+                    break;
+                }
+            }
+            if (!jurusanValid) {
+                throw new IllegalArgumentException("Jurusan tidak valid! Harus salah satu dari: Informatika, Sistem Informasi, Teknik Komputer.");
+            }
 
             Mahasiswa mhs = new Mahasiswa(nim, nama, jurusan);
             if (mahasiswaSet.add(mhs)) {
@@ -109,10 +133,10 @@ public class ManajemenMahasiswa {
         }
     }
 
-    // Menghapus data Mahasiswa
+    // Menghapus data mahasiswa
     private static void hapusMahasiswa() {
         try {
-            System.out.print("Masukan NIM mahasiswa yang ingin dihapus: ");
+            System.out.print("Masukkan NIM mahasiswa yang ingin dihapus: ");
             String nim = scanner.nextLine();
 
             Mahasiswa mhsToRemove = null;
@@ -133,11 +157,11 @@ public class ManajemenMahasiswa {
             System.out.println("Error: " + e.getMessage());
         }
     }
-    
+
     // Mencari data mahasiswa
     private static void cariMahasiswa() {
         try {
-            System.out.print("Masukan NIM mahasiswa yang ingin dicari: ");
+            System.out.print("Masukkan NIM mahasiswa yang ingin dicari: ");
             String nim = scanner.nextLine();
 
             for (Mahasiswa mhs : mahasiswaSet) {
@@ -161,6 +185,37 @@ public class ManajemenMahasiswa {
             for (Mahasiswa mhs : mahasiswaSet) {
                 System.out.println(mhs);
             }
+        }
+    }
+
+    // Membaca data dari file
+    private static void loadDataFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    mahasiswaSet.add(new Mahasiswa(parts[0], parts[1], parts[2]));
+                }
+            }
+            System.out.println("Data berhasil dimuat dari file.");
+        } catch (FileNotFoundException e) {
+            System.out.println("File tidak ditemukan, mulai dengan data kosong.");
+        } catch (IOException e) {
+            System.out.println("Error saat membaca file: " + e.getMessage());
+        }
+    }
+
+    // Menyimpan data ke file
+    private static void saveDataToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+            for (Mahasiswa mhs : mahasiswaSet) {
+                writer.write(mhs.toString());
+                writer.newLine();
+            }
+            System.out.println("Data berhasil disimpan ke file.");
+        } catch (IOException e) {
+            System.out.println("Error saat menyimpan file: " + e.getMessage());
         }
     }
 }
