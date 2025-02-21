@@ -1,221 +1,190 @@
 import java.io.*;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
-// Kelas Mahasiswa
-class Mahasiswa {
-    private String nim;
-    private String nama;
-    private String jurusan;
+public class MahasiswaManager {
 
-    // Constructor
-    public Mahasiswa(String nim, String nama, String jurusan) {
-        this.nim = nim;
-        this.nama = nama;
-        this.jurusan = jurusan;
-    }
-
-    // Getter
-    public String getNim() {
-        return nim;
-    }
-
-    public String getNama() {
-        return nama;
-    }
-
-    public String getJurusan() {
-        return jurusan;
-    }
-
-    // Override toString untuk cetak data mahasiswa
-    @Override
-    public String toString() {
-        return nim + "," + nama + "," + jurusan;
-    }
-
-    // Override equals dan hashCode untuk memastikan NIM unik
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Mahasiswa mahasiswa = (Mahasiswa) obj;
-        return nim.equals(mahasiswa.nim);
-    }
-
-    @Override
-    public int hashCode() {
-        return nim.hashCode();
-    }
-}
-
-// Main Program
-public class ManajemenMahasiswa {
+    private static List<Student> students = new ArrayList<>();
     private static final String FILE_NAME = "data_mahasiswa.txt";
-    private static HashSet<Mahasiswa> mahasiswaSet = new HashSet<>();
-    private static Scanner scanner = new Scanner(System.in);
-    private static final String[] VALID_JURUSAN = {"Informatika", "Sistem Informasi", "Teknik Komputer"};
 
     public static void main(String[] args) {
+        // Membaca data dari file saat program dijalankan
         loadDataFromFile();
 
-        int pilihan;
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+
         do {
-            System.out.println("\n=== Sistem Manajemen Data Mahasiswa ===");
+            // Menampilkan menu utama
+            System.out.println("\n=== Menu Manajemen Data Mahasiswa ===");
             System.out.println("1. Tambah Mahasiswa");
-            System.out.println("2. Hapus Mahasiswa");
+            System.out.println("2. Tampilkan Data Mahasiswa");
             System.out.println("3. Cari Mahasiswa");
-            System.out.println("4. Tampilkan Semua Mahasiswa");
+            System.out.println("4. Tampilkan Statistik Mahasiswa");
             System.out.println("5. Keluar");
             System.out.print("Pilih menu: ");
-            pilihan = scanner.nextInt();
-            scanner.nextLine(); // Membersihkan buffer
+            choice = scanner.nextInt();
+            scanner.nextLine();
 
-            switch (pilihan) {
+            switch (choice) {
                 case 1:
-                    tambahMahasiswa();
+                    addStudent(scanner);
                     break;
                 case 2:
-                    hapusMahasiswa();
+                    displayStudents();
                     break;
                 case 3:
-                    cariMahasiswa();
+                    searchStudent(scanner);
                     break;
                 case 4:
-                    tampilkanMahasiswa();
+                    showStatistics();
                     break;
                 case 5:
                     saveDataToFile();
-                    System.out.println("Keluar dari program...");
+                    System.out.println("Data telah disimpan. Program selesai.");
                     break;
                 default:
-                    System.out.println("Pilihan tidak valid!");
+                    System.out.println("Pilihan tidak valid. Coba lagi.");
             }
-        } while (pilihan != 5);
+        } while (choice != 5);
+
+        scanner.close();
     }
 
-    // Menambah data mahasiswa
-    private static void tambahMahasiswa() {
-        try {
-            System.out.print("Masukkan NIM (harus 8 digit angka): ");
-            String nim = scanner.nextLine();
-            if (!nim.matches("\\d{8}")) {
-                throw new IllegalArgumentException("NIM harus terdiri dari 8 digit angka!");
-            }
+    private static void addStudent(Scanner scanner) {
+        System.out.print("Masukkan NIM: ");
+        String nim = scanner.nextLine();
+        // Validasi format NIM
+        while (!nim.matches("\\d{8}")) {
+            System.out.print("Format NIM salah. Masukkan NIM (8 digit angka): ");
+            nim = scanner.nextLine();
+        }
 
-            System.out.print("Masukkan Nama (hanya huruf): ");
-            String nama = scanner.nextLine();
-            if (!nama.matches("[a-zA-Z ]+")) {
-                throw new IllegalArgumentException("Nama hanya boleh berisi huruf dan spasi!");
-            }
+        System.out.print("Masukkan Nama: ");
+        String name = scanner.nextLine();
+        // Validasi nama hanya huruf
+        while (!name.matches("[a-zA-Z\\s]+")) {
+            System.out.print("Nama hanya boleh berisi huruf. Masukkan Nama: ");
+            name = scanner.nextLine();
+        }
 
-            System.out.print("Masukkan Jurusan (Informatika, Sistem Informasi, Teknik Komputer): ");
-            String jurusan = scanner.nextLine();
-            boolean jurusanValid = false;
-            for (String j : VALID_JURUSAN) {
-                if (jurusan.equalsIgnoreCase(j)) {
-                    jurusanValid = true;
-                    break;
-                }
-            }
-            if (!jurusanValid) {
-                throw new IllegalArgumentException("Jurusan tidak valid! Harus salah satu dari: Informatika, Sistem Informasi, Teknik Komputer.");
-            }
+        System.out.print("Masukkan Jurusan: ");
+        String major = scanner.nextLine();
+        // Validasi daftar jurusan
+        List<String> validMajors = Arrays.asList("Informatika", "Sistem Informasi", "Teknik Elektro");
+        while (!validMajors.contains(major)) {
+            System.out.print("Jurusan tidak valid. Pilih salah satu (Informatika, Sistem Informasi, Teknik Elektro): ");
+            major = scanner.nextLine();
+        }
 
-            Mahasiswa mhs = new Mahasiswa(nim, nama, jurusan);
-            if (mahasiswaSet.add(mhs)) {
-                System.out.println("Mahasiswa berhasil ditambahkan!");
-            } else {
-                throw new Exception("Mahasiswa dengan NIM ini sudah ada!");
-            }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+        students.add(new Student(nim, name, major));
+        System.out.println("Mahasiswa berhasil ditambahkan.");
+    }
+
+    private static void displayStudents() {
+        if (students.isEmpty()) {
+            System.out.println("Belum ada data mahasiswa.");
+            return;
+        }
+
+        System.out.println("\n=== Data Mahasiswa ===");
+        System.out.printf("%-10s %-20s %-20s\n", "NIM", "Nama", "Jurusan");
+        System.out.println("----------------------------------------------------------");
+        for (Student student : students) {
+            System.out.printf("%-10s %-20s %-20s\n", student.getNim(), student.getName(), student.getMajor());
         }
     }
 
-    // Menghapus data mahasiswa
-    private static void hapusMahasiswa() {
-        try {
-            System.out.print("Masukkan NIM mahasiswa yang ingin dihapus: ");
-            String nim = scanner.nextLine();
+    private static void searchStudent(Scanner scanner) {
+        System.out.print("Masukkan kata kunci pencarian: ");
+        String keyword = scanner.nextLine().toLowerCase();
 
-            Mahasiswa mhsToRemove = null;
-            for (Mahasiswa mhs : mahasiswaSet) {
-                if (mhs.getNim().equals(nim)) {
-                    mhsToRemove = mhs;
-                    break;
-                }
-            }
+        List<Student> results = students.stream()
+                .filter(student -> student.getNim().toLowerCase().contains(keyword)
+                        || student.getName().toLowerCase().contains(keyword)
+                        || student.getMajor().toLowerCase().contains(keyword))
+                .collect(Collectors.toList());
 
-            if (mhsToRemove != null) {
-                mahasiswaSet.remove(mhsToRemove);
-                System.out.println("Mahasiswa berhasil dihapus!");
-            } else {
-                throw new Exception("Mahasiswa dengan NIM ini tidak ditemukan!");
-            }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    // Mencari data mahasiswa
-    private static void cariMahasiswa() {
-        try {
-            System.out.print("Masukkan NIM mahasiswa yang ingin dicari: ");
-            String nim = scanner.nextLine();
-
-            for (Mahasiswa mhs : mahasiswaSet) {
-                if (mhs.getNim().equals(nim)) {
-                    System.out.println("Mahasiswa ditemukan: " + mhs);
-                    return;
-                }
-            }
-            throw new Exception("Mahasiswa dengan NIM ini tidak ditemukan!");
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    // Menampilkan semua data mahasiswa
-    private static void tampilkanMahasiswa() {
-        if (mahasiswaSet.isEmpty()) {
-            System.out.println("Tidak ada data mahasiswa!");
+        if (results.isEmpty()) {
+            System.out.println("Mahasiswa tidak ditemukan.");
         } else {
-            System.out.println("\nDaftar Mahasiswa:");
-            for (Mahasiswa mhs : mahasiswaSet) {
-                System.out.println(mhs);
+            System.out.println("\n=== Hasil Pencarian ===");
+            System.out.printf("%-10s %-20s %-20s\n", "NIM", "Nama", "Jurusan");
+            System.out.println("----------------------------------------------------------");
+            for (Student student : results) {
+                System.out.printf("%-10s %-20s %-20s\n", student.getNim(), student.getName(), student.getMajor());
             }
         }
     }
 
-    // Membaca data dari file
+    private static void showStatistics() {
+        if (students.isEmpty()) {
+            System.out.println("Belum ada data mahasiswa untuk statistik.");
+            return;
+        }
+
+        // Statistik jumlah mahasiswa per jurusan
+        Map<String, Long> majorCounts = students.stream()
+                .collect(Collectors.groupingBy(Student::getMajor, Collectors.counting()));
+
+        System.out.println("\n=== Statistik Mahasiswa ===");
+        System.out.println("Jumlah mahasiswa: " + students.size());
+
+        System.out.println("\nJumlah mahasiswa per jurusan:");
+        majorCounts.forEach((major, count) -> System.out.println(major + ": " + count));
+
+        // Jurusan dengan mahasiswa terbanyak
+        String topMajor = Collections.max(majorCounts.entrySet(), Map.Entry.comparingByValue()).getKey();
+        System.out.println("Jurusan dengan jumlah mahasiswa terbanyak: " + topMajor);
+    }
+
+    private static void saveDataToFile() {
+        try (FileWriter writer = new FileWriter(FILE_NAME)) {
+            for (Student student : students) {
+                writer.write(student.getNim() + "," + student.getName() + "," + student.getMajor() + "\n");
+            }
+        } catch (IOException e) {
+            System.out.println("Terjadi kesalahan saat menyimpan data: " + e.getMessage());
+        }
+    }
+
     private static void loadDataFromFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
                 if (parts.length == 3) {
-                    mahasiswaSet.add(new Mahasiswa(parts[0], parts[1], parts[2]));
+                    students.add(new Student(parts[0], parts[1], parts[2]));
                 }
             }
-            System.out.println("Data berhasil dimuat dari file.");
         } catch (FileNotFoundException e) {
-            System.out.println("File tidak ditemukan, mulai dengan data kosong.");
+            System.out.println("File data tidak ditemukan. Memulai dengan data kosong.");
         } catch (IOException e) {
-            System.out.println("Error saat membaca file: " + e.getMessage());
+            System.out.println("Terjadi kesalahan saat membaca file: " + e.getMessage());
         }
     }
+}
 
-    // Menyimpan data ke file
-    private static void saveDataToFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
-            for (Mahasiswa mhs : mahasiswaSet) {
-                writer.write(mhs.toString());
-                writer.newLine();
-            }
-            System.out.println("Data berhasil disimpan ke file.");
-        } catch (IOException e) {
-            System.out.println("Error saat menyimpan file: " + e.getMessage());
-        }
+class Student {
+    private String nim;
+    private String name;
+    private String major;
+
+    public Student(String nim, String name, String major) {
+        this.nim = nim;
+        this.name = name;
+        this.major = major;
+    }
+
+    public String getNim() {
+        return nim;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getMajor() {
+        return major;
     }
 }
