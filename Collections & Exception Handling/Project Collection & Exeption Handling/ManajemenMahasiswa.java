@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MahasiswaManager {
+public class ManajemenMahasiswa {
 
     private static List<Student> students = new ArrayList<>();
     private static final String FILE_NAME = "data_mahasiswa.txt";
