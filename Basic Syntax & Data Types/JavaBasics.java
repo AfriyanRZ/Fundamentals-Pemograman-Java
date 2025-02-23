@@ -7,6 +7,6 @@ public class JavaBasics {
          * ini adalah komentar
          * multi baris
          */
-        System.out.println("Belajar Java!");
+        System.out.println("Belajar Java itu seru!");
     }
 }
